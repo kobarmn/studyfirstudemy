@@ -7,15 +7,15 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        // useMaterial3: true, // Material 3 を使う場合は有効に
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: '体調管理アプリ'),
     );
   }
 }
@@ -30,6 +30,34 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  // _pushPage メソッド内で context を使用するのは、State オブジェクトのプロパティとして正しいため、
+  // "Undefined context" エラーはビルド環境の問題である可能性が高いです。
+  // コード自体はこのままで問題ありません。
+  void _pushPage() {
+    Navigator.push(
+      context, // State オブジェクトの context プロパティを使用
+      MaterialPageRoute(
+        builder: (context) {
+          return NextPage();
+        },
+      ),
+    );
+  }
+
+  // _modalPage は定義されていますが使用されていません。必要なければ削除しても構いません。
+  void _modalPage() {
+    Navigator.push(
+      context, // State オブジェクトの context プロパティを使用
+      MaterialPageRoute(
+        builder: (context) {
+          return NextPage();
+        },
+        fullscreenDialog: true,
+      ),
+    );
+  }
+
   //変数定義
   double _height = 0.0;
   double _weight = 0.0;
@@ -40,7 +68,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-
         title: Text(widget.title),
       ),
       body: Padding(
@@ -48,42 +75,79 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('身長(cm)'),
+            const Text('身長(cm)'), // const を追加
             TextField(
+              keyboardType: TextInputType.number, // 数字キーボードを表示
               onChanged: (value) {
+                // 入力が数字に変換できない場合は 0 とし、メートルに変換
                 _height = (double.tryParse(value) ?? 0) / 100;
               },
             ),
-            SizedBox(height: 16),
-            Text('体重(kg)'),
+            const SizedBox(height: 16), // const を追加
+            const Text('体重(kg)'), // const を追加
             TextField(
+              keyboardType: TextInputType.number, // 数字キーボードを表示
               onChanged: (value) {
+                // 入力が数字に変換できない場合は 0 とし、そのまま kg
                 _weight = (double.tryParse(value) ?? 0);
               },
             ),
             ElevatedButton(
               onPressed: () {
-                if (_height <= 0) {
+                // 身長または体重が 0 以下なら BMI を 0 にする
+                if (_height <= 0 || _weight <= 0) { // 条件を少し整理
                   setState(() {
                     _bmi = 0;
                   });
-                  return;
-                }
-
-                if (_weight <= 0) {
+                  // return; // BMI が 0 の場合も下のTextは更新されるため return は不要
+                } else {
+                  // 身長と体重が正の値なら BMI を計算
                   setState(() {
-                    _bmi = 0;
+                    _bmi = _weight / (_height * _height);
                   });
-                  return;
                 }
-
-                setState(() {
-                  _bmi = _weight / (_height * _height);
-                });
               },
-              child: Text('計算する'),
+              child: const Text('計算する'), // const を追加
             ),
-            Text('あなたのBMIは$_bmiです'),
+            Text('あなたのBMIは ${_bmi.toStringAsFixed(2)} です'), // 小数点以下2桁で表示
+            ElevatedButton(
+                onPressed: () {
+                  // NextPage へ遷移
+                  _pushPage();
+                },
+                child: const Text('詳しくみる') // const を追加
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class NextPage extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('詳細情報'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              '運動が必要ですね',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+                onPressed: () {
+                  // 前のページに戻る処理
+                  Navigator.pop(context);
+                },
+                child: const Text('戻る')
+            ),
           ],
         ),
       ),
