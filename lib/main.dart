@@ -31,15 +31,12 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  // _pushPage メソッド内で context を使用するのは、State オブジェクトのプロパティとして正しいため、
-  // "Undefined context" エラーはビルド環境の問題である可能性が高いです。
-  // コード自体はこのままで問題ありません。
   void _pushPage() {
     Navigator.push(
       context, // State オブジェクトの context プロパティを使用
       MaterialPageRoute(
         builder: (context) {
-          return NextPage();
+          return NextPage(id: 1, name: 'エニタイムフィットネス');
         },
       ),
     );
@@ -51,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
       context, // State オブジェクトの context プロパティを使用
       MaterialPageRoute(
         builder: (context) {
-          return NextPage();
+          return NextPage(id: 2, name: '腹筋ローラー');
         },
         fullscreenDialog: true,
       ),
@@ -67,7 +64,10 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Theme
+            .of(context)
+            .colorScheme
+            .inversePrimary,
         title: Text(widget.title),
       ),
       body: Padding(
@@ -107,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   });
                 }
               },
-              child: const Text('計算する'), // const を追加
+              child: Text('計算する'),
             ),
             Text('あなたのBMIは ${_bmi.toStringAsFixed(2)} です'), // 小数点以下2桁で表示
             ElevatedButton(
@@ -115,8 +115,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   // NextPage へ遷移
                   _pushPage();
                 },
-                child: const Text('詳しくみる') // const を追加
+                child: Text('おすすめのジムはこちら')
             ),
+            ElevatedButton(onPressed: () {
+              _modalPage();
+            }, child: Text('おすすめのダイエットグッズはこちら'))
           ],
         ),
       ),
@@ -125,6 +128,12 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class NextPage extends StatelessWidget {
+  //コンストラクタで受け取る引数を追加
+  NextPage({required this.id, required this.name});
+
+  //受け取る引数の変数を定義
+  final int id;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
@@ -136,17 +145,17 @@ class NextPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              '運動が必要ですね',
+            Text(
+              '詳細ページです。id=[$id] name=[$name]',
               style: TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             ElevatedButton(
                 onPressed: () {
                   // 前のページに戻る処理
                   Navigator.pop(context);
                 },
-                child: const Text('戻る')
+                child: Text(id == 1 ? '戻る' : '閉じる')
             ),
           ],
         ),
