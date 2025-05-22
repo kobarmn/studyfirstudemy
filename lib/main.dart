@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 void main() {
   runApp(const MyApp());
@@ -14,12 +15,95 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MySlider(),
+      home: const StopWatch(),
     );
   }
 }
 
 
+
+class StopWatch extends StatefulWidget {
+  const StopWatch({super.key});
+
+  @override
+  State<StopWatch> createState() => _StopWatchState();
+}
+
+class _StopWatchState extends State<StopWatch> {
+
+  //変数定義・初期化
+  Timer _timer = Timer(Duration.zero, () {});
+  final Stopwatch _stopwatch = Stopwatch();
+  String _time = '00:00:000';
+
+ //StopWatch Start
+  void _startTimer() {
+    if(! _stopwatch.isRunning) {
+      _stopwatch.start();
+      _timer = Timer.periodic(Duration(milliseconds: 1), (timer) {
+        setState(() {
+          final Duration elapsed = _stopwatch.elapsed;
+          final String minute    = elapsed.inMinutes.toString().padLeft(2, '0');
+          final String sec = (elapsed.inSeconds % 60).toString().padLeft(2, '0');
+          final String millisec= (elapsed.inMilliseconds % 60).toString().padLeft(2, '0');
+          _time = '$minute:$sec:$millisec';
+        });
+      });
+    }
+  }
+
+  //StopWatch Stop
+  void _stopTimer(){
+    if(_stopwatch.isRunning){
+      _stopwatch.stop();
+      _timer.cancel();
+    }
+  }
+
+  //StopWatch Reset
+  void _resetTimer(){
+    _stopwatch.reset();
+    _time = '00:00:000';
+    setState(() {});
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('ストップウォッチ'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text('経過時間'),
+            Text(
+              '$_time',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                ElevatedButton(onPressed: _startTimer, child: Text('開始')),
+                const SizedBox(width: 10),
+                ElevatedButton(onPressed: _stopTimer, child: Text('停止')),
+                const SizedBox(width: 10),
+                ElevatedButton(onPressed: _resetTimer, child: Text('クリア')),
+              ]
+            )
+          ]
+    )
+      ),
+    );
+  }
+}
+
+
+
+// SliderApp
 class MySlider extends StatefulWidget {
   const MySlider({super.key});
 
@@ -64,7 +148,7 @@ class _MySliderState extends State<MySlider> {
 
 
 
-
+//CheckBox App
 class MyCheckBox extends StatefulWidget {
   const MyCheckBox({Key? key}) : super(key: key); //コンストラクタ
 
