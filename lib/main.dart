@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:math';
 
 void main() {
   runApp(const MyApp());
@@ -15,13 +16,88 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const StopWatch(),
+      home: const NumberGuessGame(),
+    );
+  }
+}
+
+
+//NumberGuessGame
+class NumberGuessGame extends StatefulWidget {
+  const NumberGuessGame({super.key});
+
+  @override
+  State<NumberGuessGame> createState() => _NumberGuessGameState();
+}
+
+class _NumberGuessGameState extends State<NumberGuessGame> {
+
+  //変数定義・初期化
+  int _numberToGuess = Random().nextInt(100) +1;
+  String _message = '私が思い浮かべている数字は何でしょうか。(1~100)';
+  final TextEditingController _controller = TextEditingController();
+  int _count = 0;
+
+  //数字当て関数 値を受け取り、答えの表示を行う。
+  void _guessNumber(){
+    int? userGuess = int.tryParse(_controller.text);
+
+    if (userGuess == null || userGuess < 1 || userGuess > 100) {
+      //ユーザが数字でない文字列や、1~100 の範囲外の数字を入れた時の処理
+      _message = '1から100の数値を入れてください。';
+      return ;
+    } else if (userGuess == _numberToGuess) {
+      _count++;
+      _message = 'おめでとうございます!「$userGuess」で正解です！\n「$_count」回目で当てました。\n新しい数字を思い浮かべます。';
+        _numberToGuess = Random().nextInt(100) +1;
+        _count = 0;
+    } else if (userGuess <= _numberToGuess) {
+      _count++;
+      _message = '「$userGuess」は小さすぎます！\nもう一度違う値で試してみてください。';
+    } else {
+      _count++;
+      _message = '「$userGuess」は大きすぎます！\nもう一度違う値で試してみてください。';
+    }
+
+    setState(() {
+      _controller.clear();
+    });
+
+    print('$_message');
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('数字当てゲーム'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(_message, style: TextStyle(fontSize: 22),),
+            TextFormField(
+              controller: _controller,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'あなたの予想を入力してください'
+              ),
+            ),
+            ElevatedButton(onPressed: _guessNumber, child: Text('予想を回答する。'))
+          ],
+        ),
+      ),
     );
   }
 }
 
 
 
+
+//StopWatch App
 class StopWatch extends StatefulWidget {
   const StopWatch({super.key});
 
@@ -78,7 +154,7 @@ class _StopWatchState extends State<StopWatch> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+          children: [
             Text('経過時間'),
             Text(
               '$_time',
@@ -86,7 +162,7 @@ class _StopWatchState extends State<StopWatch> {
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
+              children: [
                 ElevatedButton(onPressed: _startTimer, child: Text('開始')),
                 const SizedBox(width: 10),
                 ElevatedButton(onPressed: _stopTimer, child: Text('停止')),
