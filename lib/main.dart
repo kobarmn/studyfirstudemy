@@ -36,6 +36,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController controller = TextEditingController();
   List<String> items = [];
+  List<String> itemsKana = [];
   String errorMessage = '';
 
 
@@ -43,32 +44,40 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> loadZipCode(String zipCode) async {
 
     setState(() {
-      errorMessage = 'APIレスポンス待ち' //待機メッセージをセット
+      errorMessage = 'APIレスポンス待ち'; //待機メッセージをセット
     });
 
     //レスポンスが来るまで待機
     final response = await http.get(
-      Uri.parse('https://zipcloud.ibsnet.co.jp/api/search?zipcode=$zipCode')
-    );
+      Uri.parse('https://zipcloud.ibsnet.co.jp/api/search?zipcode=$zipCode'));
 
     if(response.statusCode !=200){
       //失敗
+      setState(() {
+        errorMessage = '通信エラーが発生しました';
+        items = [];
+        itemsKana = [];
+      });
       return;
     }
     //成功
-    final body = json.decode(response.body) as Map<String, dynamic>;
-    final results = (body['results'] ?? []) as List<dynamic>;
+    final body = json.decode(response.body) as Map<String, dynamic>;  //httpリクエストから返却された全体の値
+    final results = (body['results'] ?? []) as List<dynamic>;         //bodyの内、resultを取得する
 
     if(results.isEmpty) {
       setState(() {
         errorMessage = 'そのような郵便番号の住所はありません。';
+        items = [];
+        itemsKana = [];
       });
     }
      else {
-       errorMessage = '';
-       items = result.map((result => '$result['address1']'))
+       setState(() {
+         errorMessage = '';
+         items     = results.map((result) => "${result['address1']}${result['address2']}${result['address3']}").toList(growable: false);
+         itemsKana = results.map((result) => "${result['kana1']}${result['kana2']}${result['kana3']}").toList(growable: false);
+       });
     }
-
   }
 
 
@@ -84,11 +93,29 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: WebViewWidget(
+      appBar: AppBar(
+        title: TextField(
           controller: controller,
+          keyboardType: TextInputType.number,
+          onChanged: (value) {
+            if (value.isNotEmpty) {
+              loadZipCode(value);
+            }
+          },
         ),
       ),
+      body: ListView.builder(
+          itemBuilder: (context, index) {
+            if (errorMessage.isNotEmpty) {
+              return ListTile(title: Text(errorMessage));
+            } else if (items.isEmpty){
+              return const ListTile(title: Text('郵便番号を入力してください。'));
+            } else {
+              return ListTile(title: Text(items[index]), leading: Icon(Icons.home), subtitle: Text(itemsKana[index]));
+            }
+          },
+        itemCount: items.length,
+      )
     );
   }
 }
