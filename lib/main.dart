@@ -66,18 +66,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if(results.isEmpty) {
       setState(() {
-        errorMessage = 'そのような郵便番号の住所はありません。';
-        items = [];
-        itemsKana = [];
+        errorMessage = '郵便番号を入力してください。';
       });
-    }
-     else {
+    } else
        setState(() {
          errorMessage = '';
          items     = results.map((result) => "${result['address1']}${result['address2']}${result['address3']}").toList(growable: false);
          itemsKana = results.map((result) => "${result['kana1']}${result['kana2']}${result['kana3']}").toList(growable: false);
        });
-    }
   }
 
 
@@ -108,8 +104,6 @@ class _MyHomePageState extends State<MyHomePage> {
           itemBuilder: (context, index) {
             if (errorMessage.isNotEmpty) {
               return ListTile(title: Text(errorMessage));
-            } else if (items.isEmpty){
-              return const ListTile(title: Text('郵便番号を入力してください。'));
             } else {
               return ListTile(title: Text(items[index]), leading: Icon(Icons.home), subtitle: Text(itemsKana[index]));
             }
