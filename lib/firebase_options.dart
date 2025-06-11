@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'flutter-todo-ac942.firebasestorage.app',
     measurementId: 'G-SW3T49EZWR',
   );
+
 }
