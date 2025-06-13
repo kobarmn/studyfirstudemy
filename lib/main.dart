@@ -38,22 +38,53 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+//ユーザごとにcollectionKeyを配布し、各ユーザIDが主キーとなってデータが格納されている。
+const collectionKey = 'TestUser';
+
 class _MyHomePageState extends State<MyHomePage> {
 
   List<Item> items =[];
   final TextEditingController textEditingController = TextEditingController();
+  late FirebaseFirestore firestore;
 
   @override
   void initState(){
     super.initState();
+    firestore = FirebaseFirestore.instance;
     watch();
   }
 
   //データ更新監視
-  Future<void> watch() async {}
+  //データが変更されると、その新しいデータをitemsリストに格納し、setStateメソッドで状態更新を実施する。
+  Future<void> watch() async {
+    firestore.collection(collectionKey).snapshots().listen((event) {
+      setState(() {
+        items = event.docs.reversed
+            .map(
+              (document) =>
+              Item.fromSnapshot(
+                document.id,
+                document.data(),
+              ),
+        )
+            .toList(growable: false);
+      });
+    });
+  }
 
   //保存する
-  Future<void> save() async {}
+  Future<void> save() async {
+    final collection = firestore.collection(collectionKey);
+    final now = DateTime.now(); //時間を発行する。
+
+    //発行した時間をmsで表したモノをユニークキーとして、時間と入力項目を保存する。
+    await collection.doc(now.millisecondsSinceEpoch.toString()).set({
+      "data": now,
+      "text": textEditingController.text,
+    });
+    //保存された後、入力項目欄をクリアする。
+    textEditingController.text = "";
+  }
 
   //完了・未完了に変更する
   Future<void> complete(Item item) async {}
