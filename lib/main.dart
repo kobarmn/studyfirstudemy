@@ -39,7 +39,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 //ユーザごとにcollectionKeyを配布し、各ユーザIDが主キーとなってデータが格納されている。
-const collectionKey = 'TestUser';
+const collectionKey = 'UverWorld';
 
 class _MyHomePageState extends State<MyHomePage> {
 
