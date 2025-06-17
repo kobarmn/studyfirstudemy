@@ -87,7 +87,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   //完了・未完了に変更する
-  Future<void> complete(Item item) async {}
+  Future<void> complete(Item item) async {
+    final collection = firestore.collection(collectionKey);
+    await collection.doc(item.id). set ({
+      'completed': !item.completed, //itemのcompetedがtrue→false, false → true
+    }, SetOptions(merge: true)); //completed以外のフィールドは変更しない。
+  }
 
   //削除する
   Future<void> delete(String id) async {}
@@ -99,6 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(title: Text('TODOアプリ')),
       body: ListView.builder(
         itemBuilder: (context, index) {
+          //一行目は入力欄
           if (index == 0) {
             return ListTile(
               title: TextField(
@@ -114,6 +120,12 @@ class _MyHomePageState extends State<MyHomePage> {
           }
           final item = items[index - 1];
           return ListTile(
+            leading: Icon(
+              item.completed ? Icons.check_box : Icons.check_box_outline_blank,
+            ),
+            onTap: (){
+              complete(item);
+            },
             title: Text(item.text),
           );
         },
@@ -127,16 +139,19 @@ class Item {
   const Item({
     required this.id,
     required this.text,
+    required this.completed,
 });
 
   final String id;
   final String text;
+  final bool completed;
 
   factory Item.fromSnapshot(String id,
       Map<String, dynamic> document) {
     return Item(
       id: id,
       text: document['text'].toString() ?? '',
+      completed: document['completed'] ?? false,
     );
   }
 
