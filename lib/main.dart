@@ -95,7 +95,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   //削除する
-  Future<void> delete(String id) async {}
+  Future<void> delete(String id) async {
+    final collection = firestore.collection(collectionKey);
+    await collection.doc(id).delete();
+  }
 
 
   @override
@@ -119,14 +122,22 @@ class _MyHomePageState extends State<MyHomePage> {
             );
           }
           final item = items[index - 1];
-          return ListTile(
-            leading: Icon(
-              item.completed ? Icons.check_box : Icons.check_box_outline_blank,
-            ),
-            onTap: (){
-              complete(item);
+          return Dismissible(
+            key: Key(item.id),
+            //対象をスワイプした時、削除する。
+            onDismissed: (direction) {
+              delete(item.id);
             },
-            title: Text(item.text),
+            child: ListTile(
+              leading: Icon(
+                item.completed ? Icons.check_box : Icons.check_box_outline_blank,
+              ),
+              onTap: (){
+                complete(item);
+              },
+              title: Text(item.text),
+              subtitle: Text(item.date.toString().replaceAll('-', '/').substring(0, 19)),
+            ),
           );
         },
         itemCount: items.length + 1,
@@ -140,11 +151,13 @@ class Item {
     required this.id,
     required this.text,
     required this.completed,
+    required this.date,
 });
 
   final String id;
   final String text;
   final bool completed;
+  final DateTime date;
 
   factory Item.fromSnapshot(String id,
       Map<String, dynamic> document) {
@@ -152,6 +165,7 @@ class Item {
       id: id,
       text: document['text'].toString() ?? '',
       completed: document['completed'] ?? false,
+      date: (document['date'] as Timestamp?)?.toDate() ?? DateTime.now()
     );
   }
 
